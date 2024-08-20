@@ -178,6 +178,10 @@ func newSso(
 		Endpoint:     provider.Endpoint(),
 		Scopes:       append(c.Scopes, oidc.ScopeOpenID),
 	}
+	log.Warnln("AuthURL=",config.Endpoint.AuthURL)
+	log.Warnln("TokenURL=",config.Endpoint.TokenURL)
+	log.Warnln("RedirectURL=",config.RedirectURL)
+
 	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: config.ClientID})
 	encrypter, err := jose.NewEncrypter(jose.A256GCM, jose.Recipient{Algorithm: jose.RSA_OAEP_256, Key: privateKey.Public()}, &jose.EncrypterOptions{Compression: jose.DEFLATE})
 	if err != nil {
@@ -264,6 +268,7 @@ func (s *sso) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
+	log.Warnln("rawIDToken=",rawIDToken)
 	idToken, err := s.idTokenVerifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		log.WithError(err).Error("failed to verify the id token issued")
